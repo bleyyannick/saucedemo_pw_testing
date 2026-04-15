@@ -19,4 +19,16 @@ import { Page } from "@playwright/test";
       await this.page.getByPlaceholder('Password').fill(password);
       await this.page.getByRole('button', { name: 'Login' }).click();
     }
+
+    getErrorMessage() {
+      return this.page.locator('[data-test="error"]');
+    }
+
+    getInventoryList() {
+      return this.page.locator('.inventory_list');
+    }
+
+    getInventoryItems() {
+      return this.page.locator('.inventory_item');
+    }
   }
