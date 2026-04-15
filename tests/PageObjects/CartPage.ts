@@ -2,7 +2,6 @@ import { Page } from "@playwright/test";
 
 export class CartPage { 
 
-
     page:Page;
 
 
@@ -23,11 +22,14 @@ export class CartPage {
     }
 
     async addAllProductsToCart() {
-        const addToCartButtons = await this.page.getByRole('button', { name: 'Add to cart' }).elementHandles()
-        while (addToCartButtons.length > 0) {
-            await addToCartButtons[0].click();
-            addToCartButtons.shift();
+        const count = await this.page.getByRole('button', { name: 'Add to cart' }).count();
+        for (let i = 0; i < count; i++) {
+            await this.page.getByRole('button', { name: 'Add to cart' }).first().click();
         }
+    }
+
+    getRemoveButtons() {
+        return this.page.getByRole('button', { name: 'Remove' });
     }
 
 

@@ -2,55 +2,58 @@ import { expect } from '@playwright/test';
 
 import { test } from './fixtures';
 
-import { CartPage } from './PageObjects/CartPage';
-
  
 
 test.describe('Tests de connexion sur SauceDemo', () => {
 
   test('TC_001 — Login avec credentials valides', async ({ loginPage }) => {
     await loginPage.login('standard_user', 'secret_sauce');
-    expect(loginPage.page.url()).toBe('https://www.saucedemo.com/inventory.html');
+    await expect(loginPage.page).toHaveURL('/inventory.html');
+    await expect(loginPage.getInventoryList()).toBeVisible();
+    await expect(loginPage.getInventoryItems()).toHaveCount(6);
   });
+
+  const ERROR_TEXT = 'Epic sadface: Username and password do not match any user in this service';
 
   test('TC_002 — Login avec credentials invalides', async ({ loginPage }) => {
       await loginPage.login('invalid_user', 'invalid_password');
-      const errorMessage = loginPage.page.getByText('Epic sadface: Username and password do not match any user in this service');
-      await expect(errorMessage).toBeVisible();
+      await expect(loginPage.getErrorMessage()).toBeVisible();
+      await expect(loginPage.getErrorMessage()).toHaveText(ERROR_TEXT);
   });
 
   test('TC_003 — Login avec username contenant uniquement des espaces', async ({ loginPage }) => {
     await loginPage.login('   ', 'secret_sauce');
-    const errorMessage = loginPage.page.getByText('Epic sadface: Username and password do not match any user in this service');
-    await expect(errorMessage).toBeVisible();
+    await expect(loginPage.getErrorMessage()).toBeVisible();
+    await expect(loginPage.getErrorMessage()).toHaveText(ERROR_TEXT);
   });
 
   test('TC_004 — Login avec mot de passe incorrect', async ({ loginPage }) => {
     await loginPage.login('standard_user', 'wrong_password');
-    const errorMessage = loginPage.page.getByText('Epic sadface: Username and password do not match any user in this service');
-    await expect(errorMessage).toBeVisible(); 
+    await expect(loginPage.getErrorMessage()).toBeVisible();
+    await expect(loginPage.getErrorMessage()).toHaveText(ERROR_TEXT);
   });
 
   test('TC_005 — Login avec mot de passe contenant uniquement des espaces', async ({ loginPage }) => {
     await loginPage.login('standard_user', '   ');
-    const errorMessage = loginPage.page.getByText('Epic sadface: Username and password do not match any user in this service');
-    await expect(errorMessage).toBeVisible(); 
+    await expect(loginPage.getErrorMessage()).toBeVisible();
+    await expect(loginPage.getErrorMessage()).toHaveText(ERROR_TEXT);
   });
 
-  test('TC_006 — L\'utilisateur ajoute tous les produits au panier', async ({ authenticatedPage }) => {
-    const { page } = authenticatedPage;
-    const cartPage = new CartPage(page);
-    
+
+});
+
+test.describe('Tests du panier sur SauceDemo', () => {
+
+  test('TC_006 — L\'utilisateur ajoute tous les produits au panier', async ({ cartPage }) => {
     const countProducts = await cartPage.getAllCTAProducts();
-    expect(countProducts).toBeGreaterThan(0);
-    await cartPage.addAllProductsToCart();
-    
     const cartBadge = cartPage.getCartBadge();
+
+    await cartPage.addAllProductsToCart();
     await expect(cartBadge).toBeVisible();
     await expect(cartBadge).toHaveText(`${countProducts}`);
-
+    await expect(cartPage.getRemoveButtons()).toHaveCount(countProducts);
   });
-  
+
 });
   
 
